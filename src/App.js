@@ -1,190 +1,240 @@
-import React, { useState } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
+import React, { useState, useEffect } from 'react';
+import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import TypingText from './TypingText';
+import AnimatedBackground from './AnimatedBackground';
+import { phrases } from './phrases';
 
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #11110f;
-    color: #ffd700;
+    background: #0a0612;
+    color: #a259ff;
+    overscroll-behavior: none;
   }
 `;
 
 const BrowserContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #11110f;
+  min-height: 100vh;
+  background: #0a0612;
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: 0 0 32px #0008;
 `;
 
-const TabBar = styled.div`
+// ...remove old desktop browser UI...
+
+const HomeContainer = styled.div`
   display: flex;
-  background: #22221f;
-  border-bottom: 2px solid #ffd700;
-`;
-
-const Tab = styled.div`
-  padding: 12px 24px;
-  cursor: pointer;
-  color: #ffd700;
-  background: ${({ active }) => (active ? '#33331f' : 'transparent')};
-  border-bottom: ${({ active }) => (active ? '4px solid #ffd700' : 'none')};
-  font-weight: ${({ active }) => (active ? 'bold' : 'normal')};
-`;
-
-const NavBar = styled.div`
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  background: #181818;
-  padding: 8px 16px;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 0 12px;
+  position: relative;
+  z-index: 1;
 `;
 
-const NavButton = styled.button`
-  background: #22221f;
-  color: #ffd700;
-  border: none;
-  margin-right: 8px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background: #ffd700;
-    color: #11110f;
-  }
+const TypingHeader = styled.h1`
+  color: #a259ff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 18px 0;
+  text-align: center;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 16px #000a;
+`;
+
+const SearchBar = styled.form`
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const SearchInput = styled.input`
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #ffd700;
-  background: #22221f;
-  color: #ffd700;
-  margin-right: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 32px;
+  border: 2px solid #a259ff;
+  background: #18122b;
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 18px;
+  outline: none;
+  box-shadow: 0 2px 12px #0004;
 `;
 
-const BookmarksBar = styled.div`
+const BubbleRow = styled.div`
   display: flex;
-  background: #181818;
-  padding: 6px 16px;
-  border-bottom: 1px solid #ffd700;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 18px;
 `;
 
-const Bookmark = styled.button`
-  background: #22221f;
-  color: #ffd700;
+const bubble = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+`;
+
+const BubbleButton = styled.button`
+  background: linear-gradient(135deg, #a259ff 60%, #6e27c5 100%);
+  color: #fff;
   border: none;
-  margin-right: 8px;
-  padding: 6px 14px;
-  border-radius: 4px;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  font-size: 1.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px #0006;
+  margin: 0 6px;
   cursor: pointer;
-  &:hover {
-    background: #ffd700;
-    color: #11110f;
+  animation: ${bubble} 2.2s infinite;
+  transition: box-shadow 0.2s;
+  &:active {
+    box-shadow: 0 0 0 #0000;
+    animation: none;
   }
 `;
 
-const WebView = styled.iframe`
-  flex: 1;
-  border: none;
-  width: 100%;
-  background: #11110f;
+const Phrase = styled.div`
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 10px 0 0 0;
+  text-align: center;
+  opacity: 0.7;
 `;
 
-const defaultBookmarks = [
-  { name: 'DuckDuckGo', url: 'https://duckduckgo.com' },
-  { name: 'Opera', url: 'https://www.opera.com' },
-  { name: 'GitHub', url: 'https://github.com' },
-];
+const Hamburger = styled.div`
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+`;
 
-const defaultTabs = [
-  { title: 'NovaNet Home', url: 'https://duckduckgo.com' },
+const Bar = styled.div`
+  width: 28px;
+  height: 4px;
+  background: #a259ff;
+  margin: 3px 0;
+  border-radius: 2px;
+`;
+
+const SideMenu = styled.div`
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 220px;
+  background: #18122b;
+  box-shadow: 2px 0 16px #000a;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: 48px 0 0 0;
+  transform: translateX(${props => (props.open ? '0' : '-100%')});
+  transition: transform 0.25s cubic-bezier(.4,2,.6,1);
+`;
+
+const SideMenuButton = styled.button`
+  background: none;
+  border: none;
+  color: #a259ff;
+  font-size: 1.2rem;
+  padding: 18px 32px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+  &:hover {
+    background: #2d1e4f;
+  }
+`;
+
+
+
+
+const proxyBase = 'https://scramjet-app-seven.vercel.app/';
+const proxySites = [
+  { name: 'YouTube', icon: '▶️', url: 'https://youtube.com' },
+  { name: 'TikTok', icon: '🎵', url: 'https://tiktok.com' },
+  { name: 'ChatGPT', icon: '🤖', url: 'https://chat.openai.com' },
+  { name: 'Snapchat', icon: '👻', url: 'https://snapchat.com' },
 ];
 
 function App() {
-  const [tabs, setTabs] = useState(defaultTabs);
-  const [activeTab, setActiveTab] = useState(0);
-  const [address, setAddress] = useState(tabs[0].url);
+  const [search, setSearch] = useState('');
+  const [sideOpen, setSideOpen] = useState(false);
+  const [phraseIdx, setPhraseIdx] = useState(0);
 
-  const handleNav = (type) => {
-    // Navigation logic placeholder
-    if (type === 'home') {
-      updateTabUrl('https://duckduckgo.com');
-    } else if (type === 'reload') {
-      updateTabUrl(tabs[activeTab].url);
-    }
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPhraseIdx(i => (i + 1) % phrases.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const updateTabUrl = (url) => {
-    const newTabs = tabs.map((tab, idx) =>
-      idx === activeTab ? { ...tab, url } : tab
-    );
-    setTabs(newTabs);
-    setAddress(url);
-  };
-
-  const handleSearch = (e) => {
+  const handleSearch = e => {
     e.preventDefault();
-    let url = address;
-    if (!/^https?:\/\//.test(url)) {
-      url = `https://duckduckgo.com/?q=${encodeURIComponent(url)}`;
-    }
-    updateTabUrl(url);
+    if (!search.trim()) return;
+    window.location.href = proxyBase + '?url=' + encodeURIComponent('https://duckduckgo.com/?q=' + encodeURIComponent(search));
   };
 
-  const handleBookmark = (url) => {
-    updateTabUrl(url);
-  };
-
-  const addTab = () => {
-    setTabs([...tabs, { title: 'New Tab', url: 'https://duckduckgo.com' }]);
-    setActiveTab(tabs.length);
-    setAddress('https://duckduckgo.com');
-  };
-
-  const closeTab = (idx) => {
-    if (tabs.length === 1) return;
-    const newTabs = tabs.filter((_, i) => i !== idx);
-    setTabs(newTabs);
-    if (activeTab >= newTabs.length) setActiveTab(newTabs.length - 1);
-    setAddress(newTabs[activeTab >= newTabs.length ? newTabs.length - 1 : activeTab].url);
+  const handleProxySite = url => {
+    window.location.href = proxyBase + '?url=' + encodeURIComponent(url);
   };
 
   return (
     <>
       <GlobalStyle />
-      <BrowserContainer>
-        <TabBar>
-          {tabs.map((tab, idx) => (
-            <Tab key={idx} active={idx === activeTab} onClick={() => { setActiveTab(idx); setAddress(tabs[idx].url); }}>
-              {tab.title}
-              {tabs.length > 1 && (
-                <span style={{ marginLeft: 8, color: '#ffd700', cursor: 'pointer' }} onClick={e => { e.stopPropagation(); closeTab(idx); }}>&times;</span>
-              )}
-            </Tab>
-          ))}
-          <Tab onClick={addTab} style={{ fontWeight: 'bold', fontSize: 20 }}>+</Tab>
-        </TabBar>
-        <NavBar>
-          <NavButton onClick={() => handleNav('back')}>{'<'}</NavButton>
-          <NavButton onClick={() => handleNav('forward')}>{'>'}</NavButton>
-          <NavButton onClick={() => handleNav('reload')}>⟳</NavButton>
-          <NavButton onClick={() => handleNav('home')}>🏠</NavButton>
-          <form onSubmit={handleSearch} style={{ flex: 1, display: 'flex' }}>
-            <SearchInput
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              placeholder="Search or enter address"
-            />
-          </form>
-        </NavBar>
-        <BookmarksBar>
-          {defaultBookmarks.map(b => (
-            <Bookmark key={b.url} onClick={() => handleBookmark(b.url)}>{b.name}</Bookmark>
-          ))}
-        </BookmarksBar>
-        <WebView src={tabs[activeTab].url} title={tabs[activeTab].title} />
-      </BrowserContainer>
+      <AnimatedBackground />
+      <Hamburger onClick={() => setSideOpen(true)}>
+        <Bar />
+        <Bar />
+        <Bar />
+      </Hamburger>
+      <SideMenu open={sideOpen}>
+        <SideMenuButton onClick={() => setSideOpen(false)}>✕ Close</SideMenuButton>
+        <SideMenuButton onClick={() => window.location.href = '/'}>Home</SideMenuButton>
+        <SideMenuButton onClick={() => window.location.href = proxyBase}>Proxy</SideMenuButton>
+        <SideMenuButton onClick={() => window.location.href = '/games'}>Games</SideMenuButton>
+        <SideMenuButton onClick={() => window.location.href = '/credits'}>Credits</SideMenuButton>
+      </SideMenu>
+      <HomeContainer>
+        <TypingHeader>
+          <TypingText text="Welcome to NovaNet" speed={70} />
+        </TypingHeader>
+        <SearchBar onSubmit={handleSearch}>
+          <SearchInput
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search the web..."
+            autoFocus
+          />
+          <BubbleRow>
+            {proxySites.map(site => (
+              <BubbleButton key={site.name} title={site.name} type="button" onClick={() => handleProxySite(site.url)}>
+                {site.icon}
+              </BubbleButton>
+            ))}
+          </BubbleRow>
+        </SearchBar>
+        <Phrase>{phrases[phraseIdx]}</Phrase>
+      </HomeContainer>
     </>
   );
 }
