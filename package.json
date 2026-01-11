@@ -1,0 +1,20 @@
+{
+  "name": "novanet-browser",
+  "version": "1.0.0",
+  "description": "NovaNet: A modern, privacy-focused desktop browser with a black and gold theme.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "author": "NexusDevelopments",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "react-scripts": "^5.0.0"
+  }
+}
